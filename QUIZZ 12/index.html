@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>C1–C2 Vocabulary Quiz</title>
+  <title>C1–C2 Vocabulary Trainer</title>
   <style>
     * {
       box-sizing: border-box;
@@ -37,9 +37,26 @@
 
     .subtitle {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       color: #5a6473;
       font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    select {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d0d4e6;
+      background: #f9f9ff;
+      font-size: 13px;
     }
 
     .question {
@@ -74,8 +91,17 @@
       color: #374151;
     }
 
-    .options input {
+    .options input[type="radio"] {
       margin-right: 6px;
+    }
+
+    .text-answer {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #cbd5f0;
+      font-size: 14px;
+      margin-top: 4px;
     }
 
     .correct-answer {
@@ -130,9 +156,18 @@
 </head>
 <body>
   <div class="container">
-    <h1>C1–C2 Vocabulary Quiz</h1>
+    <h1>C1–C2 Vocabulary Trainer</h1>
     <div class="subtitle">
-      Từ vựng dễ xuất hiện trong đề thi tốt nghiệp – chọn câu trả lời đúng nhất.
+      Luyện từ vựng theo nhiều dạng bài – đổi chế độ để não hoạt động hết công suất 💪
+    </div>
+
+    <div class="controls">
+      <span style="font-size:13px;">Chọn dạng bài:</span>
+      <select id="modeSelect">
+        <option value="meaning">1. MCQ – Chọn nghĩa đúng</option>
+        <option value="sentence">2. MCQ – Chọn từ điền vào câu</option>
+        <option value="typing">3. Gõ từ dựa trên nghĩa</option>
+      </select>
     </div>
 
     <form id="quiz"></form>
@@ -140,562 +175,394 @@
     <button id="submitBtn" type="button">Nộp bài</button>
     <div id="result" class="result" style="display:none;"></div>
     <div class="note">
-      Gợi ý: Ko thuộc thì phải chép phạt nhé hai đứa <strong>MUAHAHAHA</strong> 
+      Gợi ý: học không thuộc là phải chép phạt nhé hai đứa <strong>MUAHAHAHA</strong> 👀✍️
+    </div>
   </div>
 
   <script>
-    const quizData = [
+    // ====== DỮ LIỆU TỪ VỰNG GỐC ======
+    const vocabData = [
       {
-        question: "1. What does 'differentiate' most nearly mean?",
-        options: [
-          "to enjoy",
-          "to copy",
-          "to distinguish between things",
-          "to limit"
-        ],
-        answer: 2
+        word: "differentiate",
+        definition: "to see or show the difference between things",
+        sentence: "It is important to ______ between facts and opinions."
       },
       {
-        question: "2. Choose the correct sentence using 'differentiate'.",
-        options: [
-          "We need learning differentiate right from wrong.",
-          "We need to learn differentiating right from wrong.",
-          "We need learn to differentiate right from wrong.",
-          "We need to learn to differentiate between right and wrong."
-        ],
-        answer: 3
+        word: "drive",
+        definition: "strong motivation that pushes someone to act",
+        sentence: "Her inner ______ helped her keep studying every night."
       },
       {
-        question: "3. In the sentence 'Failure is the drive to success', 'drive' means...",
-        options: [
-          "a car trip",
-          "motivation that pushes you forward",
-          "a place to live",
-          "a strict rule"
-        ],
-        answer: 1
+        word: "gratification",
+        definition: "a feeling of satisfaction or pleasure after achieving something",
+        sentence: "He felt great ______ after finishing the project successfully."
       },
       {
-        question: "4. Which sentence uses 'gratification' correctly?",
-        options: [
-          "She felt great gratification after completing the project successfully.",
-          "She gratification felt after complete project.",
-          "She is gratification after finish project.",
-          "She felt gratifications to complete the project."
-        ],
-        answer: 0
+        word: "impulsive",
+        definition: "acting suddenly without thinking carefully",
+        sentence: "She can be ______, buying things she does not really need."
       },
       {
-        question: "5. Someone who is 'impulsive' often...",
-        options: [
-          "plans everything very carefully",
-          "acts quickly without thinking",
-          "never makes decisions",
-          "hates talking to people"
-        ],
-        answer: 1
+        word: "nonchalant",
+        definition: "seeming calm and not worried, even when others expect you to care",
+        sentence: "He looked strangely ______ about the bad news."
       },
       {
-        question: "6. If a person seems 'nonchalant', they...",
-        options: [
-          "look very worried and nervous",
-          "don't seem to care much or show emotion",
-          "get angry very easily",
-          "cry about everything"
-        ],
-        answer: 1
+        word: "inconsiderate",
+        definition: "not thinking about how your actions affect other people",
+        sentence: "It was ______ of him to play loud music late at night."
       },
       {
-        question: "7. An 'inconsiderate' person is someone who...",
-        options: [
-          "always thinks about other people's feelings",
-          "is too shy to speak",
-          "doesn't think about how their actions affect others",
-          "is very intelligent"
-        ],
-        answer: 2
+        word: "mindfulness",
+        definition: "the state of paying full attention to the present moment",
+        sentence: "Practising ______ can help reduce stress and improve focus."
       },
       {
-        question: "8. Choose the correct type 3 conditional sentence with 'mindful'.",
-        options: [
-          "If I was mindfulness in the lesson, I would certainly pass the exam.",
-          "If I had been mindful in the lesson, I certainly would have passed the exam.",
-          "If I were mindfulness in the lesson, I certainly would pass the exam.",
-          "If I am mindfulness in the lesson, I will certainly pass the exam."
-        ],
-        answer: 1
+        word: "replicate",
+        definition: "to copy or do something again in exactly the same way",
+        sentence: "Scientists tried to ______ the experiment but failed."
       },
       {
-        question: "9. To 'replicate' something means to...",
-        options: [
-          "destroy it completely",
-          "copy or repeat it",
-          "forget it",
-          "sell it for money"
-        ],
-        answer: 1
+        word: "restrictive",
+        definition: "limiting what people can do or what is allowed",
+        sentence: "The company has very ______ rules about using social media."
       },
       {
-        question: "10. Which sentence uses 'self-esteem' correctly?",
-        options: [
-          "She has high self-esteem because she believes in her abilities.",
-          "She has a self-esteem high because she is tall.",
-          "Her self-esteemed is very high.",
-          "She is self-esteem because of her friends."
-        ],
-        answer: 0
+        word: "self-esteem",
+        definition: "belief that you are valuable and capable",
+        sentence: "Bullying at school can seriously damage a child’s ______."
       },
       {
-        question: "11. In the sentence 'Dreams are what urge us to keep learning', 'urge' is closest in meaning to...",
-        options: [
-          "stop",
-          "force us to sleep",
-          "strongly push or motivate",
-          "confuse"
-        ],
-        answer: 2
+        word: "urge",
+        definition: "a strong wish or need to do something",
+        sentence: "She had an ______ to check her phone every few minutes."
       },
       {
-        question: "12. Choose the correct passive sentence with 'designated'.",
-        options: [
-          "I designated deputy secretary.",
-          "I was designated deputy secretary.",
-          "I am designate deputy secretary.",
-          "I designated to deputy secretary."
-        ],
-        answer: 1
+        word: "designated",
+        definition: "officially chosen for a particular job or purpose",
+        sentence: "He was ______ class representative for the new school year."
       },
       {
-        question: "13. Complete the sentence: \"____ is a method which leads to peace.\"",
-        options: [
-          "Diplomacy",
-          "Gratification",
-          "Infrastructure",
-          "Subsidy"
-        ],
-        answer: 0
+        word: "diplomacy",
+        definition: "the skill of managing relations between countries or people peacefully",
+        sentence: "Good ______ can prevent conflicts from turning into wars."
       },
       {
-        question: "14. What does 'employability' refer to?",
-        options: [
-          "the amount of money you earn",
-          "how intelligent a person is",
-          "how likely a person is to get and keep a job",
-          "how long a person can study"
-        ],
-        answer: 2
+        word: "employability",
+        definition: "the ability to get and keep a job",
+        sentence: "Soft skills such as teamwork greatly increase students’ ______."
       },
       {
-        question: "15. Parents who 'impose' their dreams on their children...",
-        options: [
-          "support their choices",
-          "force their own wishes on the children",
-          "never talk to their children",
-          "listen carefully to the children"
-        ],
-        answer: 1
+        word: "impose",
+        definition: "to force people to accept a rule, opinion, or decision",
+        sentence: "Parents should not ______ their own dreams on their children."
       },
       {
-        question: "16. Which sentence with 'inconvenience' is correct?",
-        options: [
-          "I apologized for the inconvenience caused.",
-          "I apologize for the inconveniences cause.",
-          "I apologized for inconvenience causing.",
-          "I apology for the inconvenience."
-        ],
-        answer: 0
+        word: "inconvenience",
+        definition: "trouble or difficulty caused to someone",
+        sentence: "We apologise for any ______ this delay may cause."
       },
       {
-        question: "17. 'Urbanisation' is the process of...",
-        options: [
-          "people moving from cities to villages",
-          "building more villages in the countryside",
-          "people and services moving from rural areas to cities",
-          "closing down big cities"
-        ],
-        answer: 2
+        word: "navigate",
+        definition: "to find a way to deal with a difficult situation",
+        sentence: "Young people must learn to ______ challenges in modern life."
       },
       {
-        question: "18. A 'vibrant' city is usually...",
-        options: [
-          "very quiet and empty",
-          "full of life, colour, and energy",
-          "completely destroyed",
-          "dangerous and polluted"
-        ],
-        answer: 1
+        word: "openness",
+        definition: "willingness to share ideas honestly and listen to others",
+        sentence: "Their ______ during the meeting helped solve the problem."
       },
       {
-        question: "19. If something is 'obsolete', it is...",
-        options: [
-          "modern and popular",
-          "very cheap but useful",
-          "no longer used because it is old or outdated",
-          "extremely fashionable"
-        ],
-        answer: 2
+        word: "outweigh",
+        definition: "to be more important or greater in effect than something else",
+        sentence: "For many students, the benefits of studying abroad ______ the risks."
       },
       {
-        question: "20. To 'undermine' someone's confidence means to...",
-        options: [
-          "make it stronger",
-          "slowly weaken or damage it",
-          "ignore it",
-          "measure it carefully"
-        ],
-        answer: 1
+        word: "stereotype",
+        definition: "a fixed and often unfair idea about a group of people",
+        sentence: "The film challenges the ______ that all teenagers are lazy."
       },
       {
-        question: "21. A 'restrictive' rule is one that...",
-        options: [
-          "gives people more freedom",
-          "limits what people can do",
-          "has no effect on anyone",
-          "is never written down"
-        ],
-        answer: 1
+        word: "flawless",
+        definition: "perfect, with no mistakes or defects",
+        sentence: "Her performance in the exam was ______."
       },
       {
-        question: "22. Choose the correct sentence with 'restrictive'.",
-        options: [
-          "The school has restrictive dress code that limits what students can wear.",
-          "The school has a restrictive dress code that limits what students can wear.",
-          "The school has dress code restrictive limits what students wear.",
-          "The school is restrictive dress code."
-        ],
-        answer: 1
+        word: "idealised",
+        definition: "shown as more perfect or better than in real life",
+        sentence: "Social media often shows an ______ version of people’s lives."
       },
       {
-        question: "23. To 'navigate' a difficult situation means to...",
-        options: [
-          "create the problem",
-          "ignore the problem",
-          "find a way to deal with the problem",
-          "wait for someone else to solve it"
-        ],
-        answer: 2
+        word: "insecure",
+        definition: "not confident about yourself or your abilities",
+        sentence: "He felt ______ about his accent when speaking English."
       },
       {
-        question: "24. 'Openness' is best described as...",
-        options: [
-          "refusing to listen to others",
-          "willingness to listen to new ideas and share honestly",
-          "keeping all your thoughts secret",
-          "being careless with your words"
-        ],
-        answer: 1
+        word: "opt",
+        definition: "to choose one thing instead of another",
+        sentence: "Many students ______ to take an English course online."
       },
       {
-        question: "25. If the benefits 'outweigh' the risks, it means the benefits...",
-        options: [
-          "are less important than the risks",
-          "are equal to the risks",
-          "are more important or greater than the risks",
-          "do not exist"
-        ],
-        answer: 2
+        word: "perspective",
+        definition: "a particular way of thinking about or seeing something",
+        sentence: "Travelling abroad can change your ______ on life."
       },
       {
-        question: "26. A 'stereotype' is...",
-        options: [
-          "a fair and detailed description of one person",
-          "a fixed and often unfair idea about a group of people",
-          "a scientific experiment",
-          "a type of job"
-        ],
-        answer: 1
+        word: "undermine",
+        definition: "to slowly weaken or damage something",
+        sentence: "Constant criticism can ______ a person’s confidence."
       },
       {
-        question: "27. If something is 'flawless', it is...",
-        options: [
-          "full of small mistakes",
-          "average, not good or bad",
-          "perfect, with no mistakes or defects",
-          "impossible to see"
-        ],
-        answer: 2
+        word: "collective",
+        definition: "done by people working together as a group",
+        sentence: "Climate change requires ______ action from all countries."
       },
       {
-        question: "28. An 'idealised' image of someone is usually...",
-        options: [
-          "very realistic and honest",
-          "more perfect than in real life",
-          "negative and critical",
-          "completely unknown"
-        ],
-        answer: 1
+        word: "commercialism",
+        definition: "focus on making profit and selling things above other values",
+        sentence: "Some people think holidays have been ruined by ______."
       },
       {
-        question: "29. A person who feels 'insecure' often...",
-        options: [
-          "believes strongly in their abilities",
-          "feels unsure and lacks confidence",
-          "never worries about anything",
-          "is always angry with others"
-        ],
-        answer: 1
+        word: "enforce",
+        definition: "to make sure that a law or rule is obeyed",
+        sentence: "The government must ______ traffic laws more strictly."
       },
       {
-        question: "30. Which sentence uses 'opt' correctly?",
-        options: [
-          "She opted going for a walk.",
-          "She opted to stay at home and study.",
-          "She opt stay at home.",
-          "She is opt to stay at home."
-        ],
-        answer: 1
+        word: "engagement",
+        definition: "active interest and participation in something",
+        sentence: "Student ______ in class increased after the teacher used games."
       },
       {
-        question: "31. Your 'perspective' on something is your...",
-        options: [
-          "clothes and appearance",
-          "physical strength",
-          "point of view or way of seeing it",
-          "ability to speak many languages"
-        ],
-        answer: 2
+        word: "enhance",
+        definition: "to improve or increase the quality of something",
+        sentence: "Reading regularly can ______ your vocabulary."
       },
       {
-        question: "32. A 'collective' decision is one that is made...",
-        options: [
-          "only by the leader",
-          "by one random person",
-          "by a group of people together",
-          "by someone from another country"
-        ],
-        answer: 2
+        word: "infrastructure",
+        definition: "basic systems such as roads and power that a country needs",
+        sentence: "Good transport ______ is essential for economic growth."
       },
       {
-        question: "33. 'Commercialism' is mainly about...",
-        options: [
-          "focusing too much on making money and selling things",
-          "sharing money fairly",
-          "studying ancient history",
-          "protecting the environment"
-        ],
-        answer: 0
+        word: "obsolete",
+        definition: "no longer used because something newer exists",
+        sentence: "Many old devices quickly become ______ in the digital age."
       },
       {
-        question: "34. To 'enforce' a law means to...",
-        options: [
-          "create a new law",
-          "ignore the law completely",
-          "make sure people obey the law",
-          "explain why the law is wrong"
-        ],
-        answer: 2
+        word: "overshadow",
+        definition: "to make something else seem less important or noticeable",
+        sentence: "The scandal completely ______ his earlier achievements."
       },
       {
-        question: "35. In education, 'engagement' means...",
-        options: [
-          "students sleeping in class",
-          "students actively participating and paying attention",
-          "teachers talking alone",
-          "parents visiting the school"
-        ],
-        answer: 1
+        word: "reenact",
+        definition: "to repeat or perform a past event again, usually on stage",
+        sentence: "The actors will ______ a famous battle from history."
       },
       {
-        question: "36. To 'enhance' something means to...",
-        options: [
-          "make it worse",
-          "stop it from working",
-          "improve or increase its quality",
-          "hide it from everyone"
-        ],
-        answer: 2
+        word: "respiratory",
+        definition: "relating to breathing or the lungs",
+        sentence: "Air pollution can cause serious ______ diseases."
       },
       {
-        question: "37. A country's 'infrastructure' includes...",
-        options: [
-          "only the schools",
-          "roads, bridges, power systems, and basic facilities",
-          "only the government buildings",
-          "only the houses"
-        ],
-        answer: 1
+        word: "restrict",
+        definition: "to limit or control something",
+        sentence: "Some schools ______ the use of mobile phones in class."
       },
       {
-        question: "38. If one event 'overshadows' another, it...",
-        options: [
-          "makes the other event more important",
-          "makes the other event less noticed or less important",
-          "happens on a different day",
-          "is completely unrelated"
-        ],
-        answer: 1
+        word: "revive",
+        definition: "to bring something back into use or popularity",
+        sentence: "There is an effort to ______ traditional folk music."
       },
       {
-        question: "39. To 'reenact' a historical event means to...",
-        options: [
-          "forget that it ever happened",
-          "talk about it quietly",
-          "perform it again as if it is happening now",
-          "hide all information about it"
-        ],
-        answer: 2
+        word: "significance",
+        definition: "the importance or special meaning of something",
+        sentence: "Many people do not understand the ______ of this decision."
       },
       {
-        question: "40. A 'respiratory' disease affects your...",
-        options: [
-          "eyes",
-          "bones",
-          "lungs and breathing system",
-          "stomach only"
-        ],
-        answer: 2
+        word: "spark",
+        definition: "to cause something to start, especially suddenly",
+        sentence: "The teacher’s question ______ a lively debate."
       },
       {
-        question: "41. To 'restrict' something means to...",
-        options: [
-          "allow it more freedom",
-          "limit or control it",
-          "forget about it",
-          "advertise it everywhere"
-        ],
-        answer: 1
+        word: "subsidy",
+        definition: "money given by a government to support an activity or group",
+        sentence: "Farmers received a ______ to help them after the drought."
       },
       {
-        question: "42. To 'revive' a tradition means to...",
-        options: [
-          "criticise it strongly",
-          "end it forever",
-          "bring it back into use or popularity",
-          "move it to another country"
-        ],
-        answer: 2
+        word: "urbanisation",
+        definition: "the process of more people living in cities than in the countryside",
+        sentence: "Rapid ______ has created both opportunities and problems."
       },
       {
-        question: "43. The 'significance' of an event is its...",
-        options: [
-          "age",
-          "size",
-          "meaning or importance",
-          "location"
-        ],
-        answer: 2
+        word: "vibrant",
+        definition: "full of life, energy, or activity",
+        sentence: "The city centre is especially ______ at night."
       },
       {
-        question: "44. A small comment can 'spark' a big argument. Here 'spark' means to...",
-        options: [
-          "stop something",
-          "start or trigger something suddenly",
-          "hide something",
-          "measure something"
-        ],
-        answer: 1
+        word: "destructive",
+        definition: "causing great damage to people or things",
+        sentence: "The storm had a ______ impact on the coastal villages."
       },
       {
-        question: "45. A government 'subsidy' is...",
-        options: [
-          "a type of tax people must pay",
-          "money given to support a person, business, or activity",
-          "the total amount of national debt",
-          "a free holiday for workers"
-        ],
-        answer: 1
+        word: "devastating",
+        definition: "extremely shocking or damaging",
+        sentence: "The earthquake was ______ for the local community."
       },
       {
-        question: "46. 'Destructive' behaviour is behaviour that...",
-        options: [
-          "builds strong relationships",
-          "protects the environment",
-          "damages people, things, or relationships",
-          "teaches important lessons"
-        ],
-        answer: 2
+        word: "open-minded",
+        definition: "willing to consider different ideas and opinions",
+        sentence: "Good teachers are ______ and listen to students’ suggestions."
       },
       {
-        question: "47. 'Devastating' news is usually...",
-        options: [
-          "slightly boring",
-          "extremely shocking and upsetting",
-          "very funny",
-          "easy to forget"
-        ],
-        answer: 1
+        word: "bypass",
+        definition: "to avoid something by going around it",
+        sentence: "Some people try to ______ the rules instead of following them."
       },
       {
-        question: "48. An 'open-minded' person usually...",
-        options: [
-          "refuses all new ideas",
-          "only listens to one opinion",
-          "is willing to consider different ideas and opinions",
-          "never talks to anyone"
-        ],
-        answer: 2
+        word: "competence",
+        definition: "the ability or skill to do something well",
+        sentence: "The course aims to build students’ ______ in academic writing."
       },
       {
-        question: "49. To 'bypass' a rule can mean to...",
-        options: [
-          "follow it very carefully",
-          "go around it or avoid it",
-          "rewrite it",
-          "forget that it exists"
-        ],
-        answer: 1
-      },
-      {
-        question: "50. 'Competence' is someone's...",
-        options: [
-          "height and weight",
-          "money and property",
-          "ability and skill to do something well",
-          "number of friends"
-        ],
-        answer: 2
-      },
-      {
-        question: "51. 'Compulsive' behaviour is behaviour that someone...",
-        options: [
-          "can easily stop whenever they want",
-          "does because they are forced by others",
-          "feels they must do and cannot control",
-          "does only once a year"
-        ],
-        answer: 2
+        word: "compulsive",
+        definition: "doing something again and again in a way that is hard to control",
+        sentence: "He has a ______ habit of checking social media."
       }
     ];
 
     const quizForm = document.getElementById("quiz");
     const resultDiv = document.getElementById("result");
     const submitBtn = document.getElementById("submitBtn");
+    const modeSelect = document.getElementById("modeSelect");
 
-    function loadQuiz() {
+    let currentMode = "meaning";
+    let currentQuestions = [];
+
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function getRandomOtherIndices(excludeIndex, count) {
+      const indices = [];
+      const total = vocabData.length;
+      while (indices.length < count) {
+        const r = Math.floor(Math.random() * total);
+        if (r !== excludeIndex && !indices.includes(r)) {
+          indices.push(r);
+        }
+      }
+      return indices;
+    }
+
+    function buildQuestions() {
+      currentQuestions = [];
+
+      vocabData.forEach((item, index) => {
+        if (currentMode === "meaning") {
+          // MCQ: chọn nghĩa
+          const wrongIdx = getRandomOtherIndices(index, 3);
+          const options = [
+            item.definition,
+            vocabData[wrongIdx[0]].definition,
+            vocabData[wrongIdx[1]].definition,
+            vocabData[wrongIdx[2]].definition
+          ];
+          const shuffled = shuffle(options);
+          const correctIndex = shuffled.indexOf(item.definition);
+
+          currentQuestions.push({
+            type: "mcq",
+            prompt: `What does "${item.word}" most nearly mean?`,
+            options: shuffled,
+            correctIndex,
+            vocabIndex: index
+          });
+        } else if (currentMode === "sentence") {
+          // MCQ: điền từ vào câu
+          const wrongIdx = getRandomOtherIndices(index, 3);
+          const options = [
+            item.word,
+            vocabData[wrongIdx[0]].word,
+            vocabData[wrongIdx[1]].word,
+            vocabData[wrongIdx[2]].word
+          ];
+          const shuffled = shuffle(options);
+          const correctIndex = shuffled.indexOf(item.word);
+
+          currentQuestions.push({
+            type: "mcq",
+            prompt: item.sentence,
+            options: shuffled,
+            correctIndex,
+            vocabIndex: index
+          });
+        } else if (currentMode === "typing") {
+          // Gõ từ dựa trên nghĩa
+          currentQuestions.push({
+            type: "typing",
+            prompt: `Type the word that matches this meaning: "${item.definition}"`,
+            correctWord: item.word,
+            vocabIndex: index
+          });
+        }
+      });
+    }
+
+    function renderQuiz() {
       quizForm.innerHTML = "";
-      quizData.forEach((q, index) => {
+      resultDiv.style.display = "none";
+      resultDiv.textContent = "";
+
+      currentQuestions.forEach((q, index) => {
         const qDiv = document.createElement("div");
         qDiv.className = "question";
         qDiv.id = "q" + index;
 
         const qText = document.createElement("p");
-        qText.textContent = q.question;
+        qText.textContent = (index + 1) + ". " + q.prompt;
         qDiv.appendChild(qText);
 
-        const optionsDiv = document.createElement("div");
-        optionsDiv.className = "options";
+        if (q.type === "mcq") {
+          const optionsDiv = document.createElement("div");
+          optionsDiv.className = "options";
 
-        q.options.forEach((opt, i) => {
-          const label = document.createElement("label");
+          q.options.forEach((opt, i) => {
+            const label = document.createElement("label");
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = "q" + index;
+            input.value = i;
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(opt));
+            optionsDiv.appendChild(label);
+          });
+
+          qDiv.appendChild(optionsDiv);
+        } else if (q.type === "typing") {
           const input = document.createElement("input");
-          input.type = "radio";
+          input.type = "text";
           input.name = "q" + index;
-          input.value = i;
-          label.appendChild(input);
-          label.appendChild(document.createTextNode(opt));
-          optionsDiv.appendChild(label);
-        });
+          input.className = "text-answer";
+          input.placeholder = "Gõ từ tiếng Anh vào đây...";
+          qDiv.appendChild(input);
+        }
 
-        qDiv.appendChild(optionsDiv);
         quizForm.appendChild(qDiv);
       });
+    }
+
+    function normalise(str) {
+      return str.toLowerCase().trim();
     }
 
     function gradeQuiz() {
       let score = 0;
       let answered = 0;
 
-      // clear previous styles / answers
       document
         .querySelectorAll(".question")
         .forEach(q => q.classList.remove("correct", "incorrect"));
@@ -703,39 +570,68 @@
         .querySelectorAll(".correct-answer")
         .forEach(el => el.remove());
 
-      quizData.forEach((q, index) => {
-        const selected = document.querySelector(
-          `input[name="q${index}"]:checked`
-        );
+      currentQuestions.forEach((q, index) => {
         const qDiv = document.getElementById("q" + index);
 
-        if (selected) {
-          answered++;
-          const value = parseInt(selected.value, 10);
-          if (value === q.answer) {
-            score++;
-            qDiv.classList.add("correct");
-          } else {
-            qDiv.classList.add("incorrect");
-            const correctText = document.createElement("div");
-            correctText.className = "correct-answer";
-            correctText.textContent =
-              "Correct answer: " + q.options[q.answer];
-            qDiv.appendChild(correctText);
+        if (q.type === "mcq") {
+          const selected = document.querySelector(
+            `input[name="q${index}"]:checked`
+          );
+          if (selected) {
+            answered++;
+            const value = parseInt(selected.value, 10);
+            if (value === q.correctIndex) {
+              score++;
+              qDiv.classList.add("correct");
+            } else {
+              qDiv.classList.add("incorrect");
+              const correctText = document.createElement("div");
+              correctText.className = "correct-answer";
+              correctText.textContent =
+                "Correct answer: " + q.options[q.correctIndex];
+              qDiv.appendChild(correctText);
+            }
+          }
+        } else if (q.type === "typing") {
+          const input = document.querySelector(
+            `input[name="q${index}"]`
+          );
+          const value = input.value;
+          if (value !== "") {
+            answered++;
+            if (normalise(value) === normalise(q.correctWord)) {
+              score++;
+              qDiv.classList.add("correct");
+            } else {
+              qDiv.classList.add("incorrect");
+              const correctText = document.createElement("div");
+              correctText.className = "correct-answer";
+              correctText.textContent =
+                "Correct word: " + q.correctWord;
+              qDiv.appendChild(correctText);
+            }
           }
         }
       });
 
-      const percent = Math.round((score / quizData.length) * 100);
+      const percent = Math.round((score / currentQuestions.length) * 100);
       resultDiv.style.display = "block";
       resultDiv.textContent =
-        `Bạn trả lời đúng ${score}/${quizData.length} câu (${percent}%). ` +
-        `Đã chọn ${answered}/${quizData.length} câu.`;
+        `Bạn trả lời đúng ${score}/${currentQuestions.length} câu (${percent}%). ` +
+        `Đã làm ${answered}/${currentQuestions.length} câu.`;
     }
 
     submitBtn.addEventListener("click", gradeQuiz);
 
-    loadQuiz();
+    modeSelect.addEventListener("change", () => {
+      currentMode = modeSelect.value;
+      buildQuestions();
+      renderQuiz();
+    });
+
+    // Khởi tạo lần đầu
+    buildQuestions();
+    renderQuiz();
   </script>
 </body>
 </html>
